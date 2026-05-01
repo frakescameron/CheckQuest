@@ -1,20 +1,31 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import HomeScreen from "./src/screens/HomeScreen";
+import PartyScreen from "./src/screens/PartyScreen";
+import TasksScreen from "./src/screens/TasksScreen";
+import CreateTaskScreen from "./src/screens/CreateTaskScreen";
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: { backgroundColor: "#121212" },
+          headerTintColor: "#fff",
+          headerTitleStyle: { fontWeight: "bold" },
+          contentStyle: { backgroundColor: "#0b0f1a" },
+        }}
+      >
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Party" component={PartyScreen} />
+        <Stack.Screen name="Tasks" component={TasksScreen} />
+        <Stack.Screen name="CreateTask" component={CreateTaskScreen} options={{ title: "Create Quest" }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
