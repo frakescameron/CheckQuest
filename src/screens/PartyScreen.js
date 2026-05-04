@@ -78,6 +78,7 @@ async function saveParty() {
             good: selectedClass.good,
             poor: selectedClass.poor,
             stats: selectedClass.stats,
+            statGrowth: selectedClass.statGrowth,
         };
 
         setParty((current) => [...current, newAdventurer]);
@@ -235,6 +236,7 @@ async function saveParty() {
 }
 
 function AdventurerCard({ adventurer, onDelete }) {
+  const [showStats, setShowStats] = useState(false);
   const progress = Math.min(adventurer.xp / adventurer.nextLevelXp, 1);
 
   return (
@@ -267,18 +269,42 @@ function AdventurerCard({ adventurer, onDelete }) {
         </Text>
 
         <View style={styles.miniStats}>
-          <Text style={styles.miniStat}>💪 {adventurer.stats.physical}</Text>
-          <Text style={styles.miniStat}>🛡️ {adventurer.stats.defense}</Text>
-          <Text style={styles.miniStat}>⚙️ {adventurer.stats.mechanical}</Text>
-          <Text style={styles.miniStat}>⚡ {adventurer.stats.electrical}</Text>
+          {Object.entries(adventurer.stats).map(([statName, value]) => (
+            <Text key={statName} style={styles.miniStat}>
+              {formatStatLabel(statName)} {value}
+            </Text>
+          ))}
         </View>
 
-                    <Pressable
-            style={styles.deleteButton}
-            onPress={() => onDelete(adventurer.id)}
-            >
-            <Text style={styles.deleteButtonText}>Delete Adventurer</Text>
-            </Pressable>
+        <Pressable
+          style={styles.statsButton}
+          onPress={() => setShowStats((current) => !current)}
+        >
+          <Text style={styles.statsButtonText}>
+            {showStats ? "Hide Stats" : "View Stats"}
+          </Text>
+        </Pressable>
+
+        {showStats && (
+          <View style={styles.statsPanel}>
+            {Object.entries(adventurer.stats).map(([statName, value]) => (
+              <View key={statName} style={styles.statRow}>
+                <Text style={styles.statName}>{formatStatLabel(statName)}</Text>
+                <Text style={styles.statValue}>{value}</Text>
+                <Text style={styles.statModifier}>
+                  {formatModifier(value)} to rolls
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <Pressable
+          style={styles.deleteButton}
+          onPress={() => onDelete(adventurer.id)}
+        >
+          <Text style={styles.deleteButtonText}>Delete Adventurer</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -335,6 +361,30 @@ function TraitSection({ title, items, color }) {
 function formatStatName(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
+
+function getModifier(statValue) {
+  return Math.floor((statValue - 10) / 2);
+}
+
+function formatModifier(value) {
+  const mod = getModifier(value);
+  return mod >= 0 ? `+${mod}` : `${mod}`;
+}
+
+function formatStatLabel(stat) {
+  const map = {
+    strength: "STR",
+    dexterity: "DEX",
+    constitution: "CON",
+    intelligence: "INT",
+    wisdom: "WIS",
+    charisma: "CHA",
+  };
+
+  return map[stat] || stat.toUpperCase();
+}
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -698,6 +748,19 @@ deleteButton: {
   alignSelf: "flex-start",
 },
 deleteButtonText: {
+  color: colors.text,
+  fontWeight: "bold",
+  fontSize: 12,
+},
+statsButton: {
+  backgroundColor: colors.cardLight,
+  paddingVertical: 8,
+  paddingHorizontal: 10,
+  borderRadius: 10,
+  marginTop: 12,
+  alignSelf: "flex-start",
+},
+statsButtonText: {
   color: colors.text,
   fontWeight: "bold",
   fontSize: 12,

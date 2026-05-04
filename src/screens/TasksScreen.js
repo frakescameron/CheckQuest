@@ -148,24 +148,30 @@ export default function TasksScreen() {
     return baseXp;
   }
 
-  function applyXp(adventurer, xpAmount) {
-    let newXp = adventurer.xp + xpAmount;
-    let newLevel = adventurer.level;
-    let nextLevelXp = adventurer.nextLevelXp;
+function applyXp(adventurer, xpAmount, questCategory) {
+  let newXp = adventurer.xp + xpAmount;
+  let newLevel = adventurer.level;
+  let nextLevelXp = adventurer.nextLevelXp;
+  let newStats = { ...adventurer.stats };
 
-    while (newXp >= nextLevelXp) {
-      newXp -= nextLevelXp;
-      newLevel += 1;
-      nextLevelXp = Math.round(nextLevelXp * 1.35);
-    }
+  const growthStats = adventurer.statGrowth || [];
 
-    return {
-      ...adventurer,
-      xp: newXp,
-      level: newLevel,
-      nextLevelXp,
-    };
+  while (newXp >= nextLevelXp) {
+    newXp -= nextLevelXp;
+    newLevel += 1;
+    nextLevelXp = Math.round(nextLevelXp * 1.35);
+
+    newStats = levelUpStats(newStats, growthStats);
   }
+
+  return {
+    ...adventurer,
+    xp: newXp,
+    level: newLevel,
+    nextLevelXp,
+    stats: newStats,
+  };
+}
 
   function createQuest() {
     if (!title.trim()) {
@@ -241,7 +247,7 @@ export default function TasksScreen() {
             setParty((currentParty) =>
               currentParty.map((member) =>
                 member.id === quest.assignedAdventurerId
-                  ? applyXp(member, quest.xpReward)
+                  ? applyXp(member, quest.xpReward, quest.category)
                   : member
               )
             );
@@ -511,6 +517,56 @@ function getFitLabel(member, category) {
   if (member.poor?.includes(category)) return "Poor fit";
   return "Average fit";
 }
+
+
+function getModifier(statValue) {
+  return Math.floor((statValue - 10) / 2);
+}
+
+function formatModifier(value) {
+  const modifier = getModifier(value);
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
+function formatStatLabel(statName) {
+  const labels = {
+    strength: "STR",
+    dexterity: "DEX",
+    constitution: "CON",
+    intelligence: "INT",
+    wisdom: "WIS",
+    charisma: "CHA",
+  };
+
+  return labels[statName] || statName.toUpperCase();
+}
+
+function levelUpStats(stats, growthStats = []) {
+  const MAX_STAT = 30;
+  const newStats = { ...stats };
+
+  // Always +1 to a main stat
+  const mainStat =
+    growthStats[Math.floor(Math.random() * growthStats.length)];
+
+  if (newStats[mainStat] < MAX_STAT) {
+    newStats[mainStat] += 1;
+  }
+
+  // 50% chance to increase second stat
+  if (Math.random() < 0.5 && growthStats.length > 1) {
+    const secondStat =
+      growthStats[Math.floor(Math.random() * growthStats.length)];
+
+    if (newStats[secondStat] < MAX_STAT) {
+      newStats[secondStat] += 1;
+    }
+  }
+
+  return newStats;
+}
+
+
 
 const styles = StyleSheet.create({
   container: {
