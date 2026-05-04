@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/screens/HomeScreen";
 import PartyScreen from "./src/screens/PartyScreen";
 import TasksScreen from "./src/screens/TasksScreen";
+import GameScreen from "./src/screens/GameScreen";
 
 
 
@@ -25,6 +26,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Party" component={PartyScreen} />
         <Stack.Screen name="Tasks" component={TasksScreen} />
+        <Stack.Screen name="Game" component={GameScreen} options={{ title: "Adventure" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

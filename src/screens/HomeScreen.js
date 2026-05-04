@@ -18,6 +18,10 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.buttonText}>View Quests</Text>
       </Pressable>
 
+      <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate("Game")}>
+        <Text style={styles.buttonText}>Adventure Mode</Text>
+      </Pressable>
+
     </View>
   );
 }
