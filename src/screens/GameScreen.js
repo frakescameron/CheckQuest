@@ -201,7 +201,7 @@ const nodes = [
     label: "Ruin Path",
     x: 783,
     y: 650,
-    connectedTo: ["east_falter", "east_lake", "eastern_ruins", "far_east", "east_outpost"],
+    connectedTo: ["east_falter", "east_lake", "eastern_ruins", "far_east", "east_outpost", "central_crossing"],
     title: "Ruin Path",
     type: "event",
     description: "Broken stones mark the way to ancient ruins.",
