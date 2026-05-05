@@ -11,245 +11,28 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { colors } from "../theme/colors";
+import { nodes, MAP_WIDTH, MAP_HEIGHT } from "../data/mapNodes";
+import { locationEvents } from "../data/locationEvents";
+import { travelEncounters } from "../data/travelEncounters";
 
 const PARTY_STORAGE_KEY = "checkquest_party";
 const GOLD_STORAGE_KEY = "checkquest_gold";
 
-const MAP_WIDTH = 1148;
-const MAP_HEIGHT = 1200;
-
-const nodes = [
-  {
-    id: "start",
-    label: "Start",
-    x: 99,
-    y: 278,
-    connectedTo: ["coast_road", "central_crossing", "island"],
-    title: "The Road Begins",
-    type: "start",
-    description: "Your party begins the adventure near the western coast.",
-    options: ["Search the road", "Move carefully", "Make camp"],
-  },
-    {
-    id: "island",
-    label: "island",
-    x: 47,
-    y: 498,
-    connectedTo: ["lower_crossing", "central_crossing", "south_coast", "start"],
-    title: "The Second Island",
-    type: "event",
-    description: "Your party begins the adventure near the western coast.",
-    options: ["Search the road", "Move carefully", "Make camp"],
-  },
-  {
-    id: "coast_road",
-    label: "Coast Road",
-    x: 335,
-    y: 130,
-    connectedTo: ["central_crossing", "start"],
-    title: "Coast Road",
-    type: "event",
-    description: "A windy cliffside road overlooks the sea.",
-    options: ["Scout ahead", "Travel quickly", "Search for supplies"],
-  },
-  {
-    id: "central_crossing",
-    label: "Crossing",
-    x: 430,
-    y: 447,
-    connectedTo: ["start", "coast_road", "lower_crossing", "east_gate", "island", "ruin_path"],
-    title: "Central Crossing",
-    type: "event",
-    description: "Several roads meet at a worn stone crossing.",
-    options: ["Follow tracks", "Inspect the area", "Move onward"],
-  },
-  {
-    id: "south_coast",
-    label: "South Coast",
-    x: 196,
-    y: 742,
-    connectedTo: ["island", "south_bridge", "lower_crossing"],
-    title: "South Coast",
-    type: "event",
-    description: "Waves crash against the rocks below.",
-    options: ["Search wreckage", "Avoid the cliffs", "Rest briefly"],
-  },
-  {
-    id: "south_bridge",
-    label: "Old Bridge",
-    x: 315,
-    y: 805,
-    connectedTo: ["south_coast", "lower_crossing", "southern_pass"],
-    title: "Old Bridge",
-    type: "event",
-    description: "An old bridge groans under your party’s weight.",
-    options: ["Cross slowly", "Repair loose stones", "Take another path"],
-  },
-  {
-    id: "lower_crossing",
-    label: "Lower Crossing",
-    x: 423,
-    y: 580,
-    connectedTo: ["central_crossing", "south_bridge", "southern_pass", "river_fork", "south_coast", "island", "eastern_ruins"],
-    title: "Lower Crossing",
-    type: "event",
-    description: "A narrow crossing leads deeper into the wildlands.",
-    options: ["Push forward", "Survey the land", "Check supplies"],
-  },
-  {
-    id: "southern_pass",
-    label: "Southern Pass",
-    x: 470,
-    y: 890,
-    connectedTo: ["lower_crossing", "deep_south", "eastern_ruins", "south_bridge"],
-    title: "Southern Pass",
-    type: "event",
-    description: "A rough path cuts through broken hills.",
-    options: ["Climb carefully", "Look for shortcuts", "Press on"],
-  },
-  {
-    id: "deep_south",
-    label: "Deep South",
-    x: 534,
-    y: 1009,
-    connectedTo: ["southern_pass", "final_road", "far_east"],
-    title: "Deep South",
-    type: "event",
-    description: "The air grows still. Something watches from the hills.",
-    options: ["Stay alert", "Sneak through", "Call out"],
-  },
-  {
-    id: "final_road",
-    label: "Final Road",
-    x: 400,
-    y: 1130,
-    connectedTo: ["deep_south"],
-    title: "Final Road",
-    type: "boss",
-    description: "The final road waits beyond the southern edge of the map.",
-    options: ["Continue"],
-  },
-  {
-    id: "east_gate",
-    label: "East Gate",
-    x: 555,
-    y: 410,
-    connectedTo: ["central_crossing", "north_fork", "east_falter"],
-    title: "East Gate",
-    type: "event",
-    description: "A guarded trail leads east into dangerous country.",
-    options: ["Approach openly", "Sneak past", "Study the gate"],
-  },
-    {
-    id: "east_falter",
-    label: "East Falter",
-    x: 685,
-    y: 428,
-    connectedTo: ["east_gate", "north_fork", "east_split", "ruin_path"],
-    title: "East Gate",
-    type: "event",
-    description: "A guarded trail leads east into dangerous country.",
-    options: ["Approach openly", "Sneak past", "Study the gate"],
-  },
-  {
-    id: "north_fork",
-    label: "North Fork",
-    x: 600,
-    y: 260,
-    connectedTo: ["east_gate", "east_split"],
-    title: "North Fork",
-    type: "event",
-    description: "The trail splits near rocky hills.",
-    options: ["Take the high road", "Search the trail", "Rest"],
-  },
-  {
-    id: "north_peak",
-    label: "North Peak",
-    x: 795,
-    y: 211,
-    connectedTo: ["north_fork", "east_split"],
-    title: "North Peak",
-    type: "reward",
-    description: "From the high ground, your party finds an old supply cache.",
-    options: ["Claim supplies"],
-    goldReward: 25,
-  },
-  {
-    id: "east_split",
-    label: "East Split",
-    x: 725,
-    y: 300,
-    connectedTo: ["north_fork", "north_peak", "east_lake", "east_falter"],
-    title: "East Split",
-    type: "event",
-    description: "A dangerous split in the road forces a decision.",
-    options: ["Go toward the lake", "Follow the ruins", "Scout first"],
-  },
-  {
-    id: "east_lake",
-    label: "Lake Road",
-    x: 915,
-    y: 515,
-    connectedTo: ["east_split", "ruin_path"],
-    title: "Lake Road",
-    type: "event",
-    description: "A quiet lake reflects the mountains. Too quiet.",
-    options: ["Investigate", "Avoid the water", "Move fast"],
-  },
-  {
-    id: "ruin_path",
-    label: "Ruin Path",
-    x: 783,
-    y: 650,
-    connectedTo: ["east_falter", "east_lake", "eastern_ruins", "far_east", "east_outpost", "central_crossing"],
-    title: "Ruin Path",
-    type: "event",
-    description: "Broken stones mark the way to ancient ruins.",
-    options: ["Read the markings", "Search for traps", "Continue"],
-  },
-  {
-    id: "eastern_ruins",
-    label: "Eastern Ruins",
-    x: 625,
-    y: 735,
-    connectedTo: ["southern_pass", "ruin_path", "far_east", "lower_crossing"],
-    title: "Eastern Ruins",
-    type: "reward",
-    description: "Your party finds gold hidden beneath loose stone.",
-    options: ["Take the gold"],
-    goldReward: 40,
-  },
-  {
-    id: "far_east",
-    label: "Far East",
-    x: 870,
-    y: 815,
-    connectedTo: ["ruin_path", "eastern_ruins", "east_outpost", "deep_south"],
-    title: "Far East",
-    type: "shop",
-    description: "A strange merchant waits near the road.",
-    options: ["Browse wares", "Move on"],
-  },
-  {
-    id: "east_outpost",
-    label: "Outpost",
-    x: 975,
-    y: 652,
-    connectedTo: ["far_east", "ruin_path"],
-    title: "Outpost",
-    type: "event",
-    description: "A lonely outpost stands at the edge of the road.",
-    options: ["Enter", "Watch from afar", "Leave"],
-  },
-];
-
 export default function GameScreen() {
   const [party, setParty] = useState([]);
   const [gold, setGold] = useState(0);
+
   const [currentNodeId, setCurrentNodeId] = useState("start");
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [showEncounter, setShowEncounter] = useState(true);
+
   const [adventureStarted, setAdventureStarted] = useState(false);
+  const [showEncounter, setShowEncounter] = useState(false);
+
+  const [activeLocationEvent, setActiveLocationEvent] = useState(null);
+  const [eventStepId, setEventStepId] = useState("start");
+  const [usedRootChoices, setUsedRootChoices] = useState([]);
+
+  const [travelEncounter, setTravelEncounter] = useState(null);
 
   const currentNode = useMemo(
     () => nodes.find((node) => node.id === currentNodeId),
@@ -279,6 +62,16 @@ export default function GameScreen() {
     if (savedGold) setGold(Number(savedGold));
   }
 
+  function beginAdventure() {
+    setAdventureStarted(true);
+    setShowEncounter(true);
+
+    const startEvent = locationEvents[currentNodeId];
+    setActiveLocationEvent(startEvent || null);
+    setEventStepId("start");
+    setUsedRootChoices([]);
+  }
+
   function tapNode(nodeId) {
     if (nodeId === currentNodeId) {
       setSelectedNodeId(nodeId);
@@ -294,6 +87,11 @@ export default function GameScreen() {
   }
 
   function travelToNode() {
+    if (!adventureStarted) {
+      Alert.alert("Adventure Not Started", "Press Begin Adventure first.");
+      return;
+    }
+
     if (!selectedNode) return;
 
     if (!availableNodeIds.includes(selectedNode.id)) {
@@ -301,29 +99,122 @@ export default function GameScreen() {
       return;
     }
 
-    setCurrentNodeId(selectedNode.id);
+    const shouldTriggerTravelEncounter = Math.random() < 0.35;
+
+    if (shouldTriggerTravelEncounter) {
+      const randomEncounter =
+        travelEncounters[Math.floor(Math.random() * travelEncounters.length)];
+
+      setTravelEncounter({
+        ...randomEncounter,
+        destinationNodeId: selectedNode.id,
+      });
+
+      setSelectedNodeId(null);
+      setShowEncounter(false);
+      return;
+    }
+
+    arriveAtNode(selectedNode.id);
+  }
+
+  function arriveAtNode(nodeId) {
+    const node = nodes.find((item) => item.id === nodeId);
+
+    setCurrentNodeId(nodeId);
     setSelectedNodeId(null);
     setShowEncounter(true);
+    setTravelEncounter(null);
 
-    if (selectedNode.goldReward) {
-      setGold((current) => current + selectedNode.goldReward);
+    const locationEvent = locationEvents[nodeId];
+
+    if (locationEvent) {
+      setActiveLocationEvent(locationEvent);
+      setEventStepId("start");
+      setUsedRootChoices([]);
+    } else {
+      setActiveLocationEvent(null);
+      setEventStepId("start");
+      setUsedRootChoices([]);
+    }
+
+    if (node?.goldReward) {
+      setGold((current) => current + node.goldReward);
     }
   }
 
-  function resolveEncounter(choice) {
+  function resolveTravelEncounter(choice) {
+    if (choice.action === "combat") {
+      Alert.alert("Combat Starting", "Attack phase will be connected here.");
+    } else {
+      Alert.alert(
+        "Travel Encounter Complete",
+        `${choice.text} attempted. Dice rolls will be connected later.`
+      );
+    }
+
+    const destinationNodeId = travelEncounter.destinationNodeId;
+    setTravelEncounter(null);
+    arriveAtNode(destinationNodeId);
+  }
+
+function rollD20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+
+function handleLocationChoice(choice) {
+  if (choice.action === "combat") {
+    Alert.alert("Combat Starting", "Attack phase will be connected here.");
     setShowEncounter(false);
+    return;
+  }
+
+  if (choice.action === "travel") {
+    Alert.alert("Area Avoided", "You avoided combat and can choose your next road.");
+    setShowEncounter(false);
+    return;
+  }
+
+  if (choice.action === "returnToStart") {
+    if (choice.removeChoice) {
+      setUsedRootChoices((current) => [...current, choice.removeChoice]);
+    }
+
+    setEventStepId("start");
+    return;
+  }
+
+  if (choice.successNext && choice.failNext) {
+    const roll = rollD20();
+    const success = roll >= choice.dc;
 
     Alert.alert(
-      "Encounter Complete",
-      `${choice} completed. Combat and dice rolls will be added next.`
+      success ? "Success!" : "Failed!",
+      `You rolled ${roll}. Needed ${choice.dc}.`
     );
+
+    setEventStepId(success ? choice.successNext : choice.failNext);
+    return;
   }
+
+  if (choice.next) {
+    setEventStepId(choice.next);
+  }
+}
 
   function restartAdventure() {
     setCurrentNodeId("start");
     setSelectedNodeId(null);
-    setShowEncounter(true);
+    setAdventureStarted(false);
+    setShowEncounter(false);
+    setActiveLocationEvent(null);
+    setEventStepId("start");
+    setUsedRootChoices([]);
+    setTravelEncounter(null);
   }
+
+  const activeStep =
+    activeLocationEvent?.steps?.[eventStepId] || activeLocationEvent?.steps?.start;
 
   return (
     <View style={styles.container}>
@@ -333,7 +224,7 @@ export default function GameScreen() {
       </View>
 
       <ScrollView horizontal maximumZoomScale={2.5} minimumZoomScale={0.35}>
-         <ScrollView maximumZoomScale={2.5} minimumZoomScale={0.35}>
+        <ScrollView maximumZoomScale={2.5} minimumZoomScale={0.35}>
           <ImageBackground
             source={require("../../assets/maps/world-map-with-nodes-and-lines.jpg")}
             style={styles.map}
@@ -350,17 +241,15 @@ export default function GameScreen() {
                   style={[
                     styles.node,
                     {
-                        left: node.x * 0.55 - 10,
-                        top: node.y * 0.55 - 10,
+                      left: node.x * 0.55 - 10,
+                      top: node.y * 0.55 - 10,
                     },
                     isCurrent && styles.currentNode,
-                    isAvailable && styles.availableNode,
+                    adventureStarted && isAvailable && styles.availableNode,
                     isSelected && styles.selectedNode,
                   ]}
                 >
-                  <Text style={styles.nodeText}>
-                    {isCurrent ? "🧍" : ""}
-                  </Text>
+                  <Text style={styles.nodeText}>{isCurrent ? "🧍" : ""}</Text>
                 </Pressable>
               );
             })}
@@ -371,41 +260,70 @@ export default function GameScreen() {
       {selectedNode && selectedNode.id !== currentNodeId && (
         <View style={styles.travelPanel}>
           <Text style={styles.panelTitle}>{selectedNode.title}</Text>
-          <Text style={styles.panelText}>{selectedNode.type.toUpperCase()}</Text>
+          <Text style={styles.panelType}>{selectedNode.type.toUpperCase()}</Text>
+          <Text style={styles.panelText}>{selectedNode.description}</Text>
 
-          <Pressable style={styles.travelButton} onPress={travelToNode}>
-            <Text style={styles.buttonText}>Travel Here</Text>
-          </Pressable>
+          {adventureStarted ? (
+            <Pressable style={styles.travelButton} onPress={travelToNode}>
+              <Text style={styles.buttonText}>Travel Here</Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.lockedTravelText}>
+              Begin the adventure before traveling.
+            </Text>
+          )}
         </View>
       )}
 
-        {!adventureStarted && (
-  <Pressable
-    style={styles.beginButton}
-    onPress={() => {
-      setAdventureStarted(true);
-      setShowEncounter(true);
-    }}
-  >
-    <Text style={styles.beginButtonText}>Begin Adventure</Text>
-  </Pressable>
-)}
+      {!adventureStarted && (
+        <Pressable style={styles.beginButton} onPress={beginAdventure}>
+          <Text style={styles.beginButtonText}>Begin Adventure</Text>
+        </Pressable>
+      )}
 
-      {adventureStarted && showEncounter && currentNode && (
+      {travelEncounter && (
         <View style={styles.encounterPanel}>
-          <Text style={styles.encounterType}>{currentNode.type.toUpperCase()}</Text>
-          <Text style={styles.encounterTitle}>{currentNode.title}</Text>
-          <Text style={styles.encounterText}>{currentNode.description}</Text>
+          <Text style={styles.encounterType}>
+            {travelEncounter.type === "combat" ? "TRAVEL COMBAT" : "WILD ENCOUNTER"}
+          </Text>
+          <Text style={styles.encounterTitle}>{travelEncounter.title}</Text>
+          <Text style={styles.encounterText}>{travelEncounter.description}</Text>
 
-          {currentNode.options.map((option) => (
+          {travelEncounter.choices.map((choice) => (
             <Pressable
-              key={option}
+              key={choice.text}
               style={styles.choiceButton}
-              onPress={() => resolveEncounter(option)}
+              onPress={() => resolveTravelEncounter(choice)}
             >
-              <Text style={styles.choiceText}>{option}</Text>
+              <Text style={styles.choiceText}>
+                {choice.text}
+                {choice.stat ? ` (${choice.stat} +${choice.dc})` : ""}
+              </Text>
             </Pressable>
           ))}
+        </View>
+      )}
+
+      {adventureStarted && showEncounter && activeLocationEvent && activeStep && !travelEncounter && (
+        <View style={styles.encounterPanel}>
+          <Text style={styles.encounterType}>AREA EVENT</Text>
+          <Text style={styles.encounterTitle}>{activeLocationEvent.title}</Text>
+          <Text style={styles.encounterText}>{activeStep.text}</Text>
+
+          {activeStep.choices
+            .filter((choice) => !usedRootChoices.includes(choice.id))
+            .map((choice) => (
+              <Pressable
+                key={choice.text}
+                style={styles.choiceButton}
+                onPress={() => handleLocationChoice(choice)}
+              >
+                <Text style={styles.choiceText}>
+                  {choice.text}
+                  {choice.stat ? ` (${choice.stat} +${choice.dc})` : ""}
+                </Text>
+              </Pressable>
+            ))}
         </View>
       )}
 
@@ -437,10 +355,10 @@ const styles = StyleSheet.create({
     color: colors.warning,
     fontWeight: "bold",
   },
-    map: {
+  map: {
     width: MAP_WIDTH * 0.55,
     height: MAP_HEIGHT * 0.55,
-    },
+  },
   node: {
     position: "absolute",
     width: 20,
@@ -451,7 +369,7 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     alignItems: "center",
     justifyContent: "center",
-},
+  },
   currentNode: {
     backgroundColor: colors.warning,
     borderColor: "#fff",
@@ -485,9 +403,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
+  panelType: {
+    color: colors.accent,
+    marginTop: 4,
+    fontWeight: "bold",
+  },
   panelText: {
     color: colors.muted,
-    marginTop: 4,
+    marginTop: 8,
+    lineHeight: 20,
   },
   travelButton: {
     backgroundColor: colors.accent,
@@ -500,6 +424,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
+  lockedTravelText: {
+    color: colors.warning,
+    marginTop: 12,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
   encounterPanel: {
     position: "absolute",
     left: 16,
@@ -510,6 +440,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.cardLight,
+    maxHeight: "55%",
   },
   encounterType: {
     color: colors.accent,
@@ -550,18 +481,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   beginButton: {
-  position: "absolute",
-  left: 16,
-  right: 16,
-  bottom: 16,
-  backgroundColor: colors.warning,
-  padding: 14,
-  borderRadius: 16,
-},
-beginButtonText: {
-  color: "#111",
-  fontWeight: "bold",
-  textAlign: "center",
-  fontSize: 16,
-},
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    transform: [{ translateX: -90 }, { translateY: -30 }],
+    width: 180,
+    backgroundColor: colors.warning,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#111",
+  },
+  beginButtonText: {
+    color: "#111",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 16,
+  },
 });
